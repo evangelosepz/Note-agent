@@ -1,12 +1,7 @@
 import streamlit as st
-import spacy
+from textblob import TextBlob
 import dateparser
-from collections import Counter
 
-# Load English NLP model
-nlp = spacy.load("en_core_web_sm")
-
-# Κατηγορίες με βάση λέξεις-κλειδιά
 CATEGORY_KEYWORDS = {
     "task": ["να ", "πρέπει", "ολοκληρώσω", "πάρε", "στείλε"],
     "journal": ["σκέφτηκα", "ένιωσα", "πήγα", "είδα", "θυμάμαι"],
@@ -14,26 +9,22 @@ CATEGORY_KEYWORDS = {
     "reminder": ["μην ξεχάσεις", "υπενθύμιση"]
 }
 
-# Ανίχνευση κατηγορίας
 def detect_category(text):
     for category, keywords in CATEGORY_KEYWORDS.items():
         if any(kw.lower() in text.lower() for kw in keywords):
             return category.capitalize()
     return "General"
 
-# Εξαγωγή tags (ουσιαστικά & ονόματα)
 def extract_tags(text):
-    doc = nlp(text)
-    return [token.text for token in doc if token.pos_ in ("NOUN", "PROPN") and not token.is_stop]
+    blob = TextBlob(text)
+    return [word for (word, tag) in blob.tags if tag in ("NN", "NNS", "NNP", "NNPS")]
 
-# Εξαγωγή ημερομηνίας
 def extract_date(text):
     date = dateparser.parse(text, languages=["el"])
     return date.strftime("%Y-%m-%d") if date else "-"
 
-# Streamlit UI
-st.set_page_config(page_title="Giorgo's Note Engine", layout="centered")
-st.title("Note Analysis Engine - Giorgo")
+st.set_page_config(page_title="Note Engine Lite", layout="centered")
+st.title("Note Engine Lite")
 
 note = st.text_area("Γράψε εδώ τη σημείωση σου")
 

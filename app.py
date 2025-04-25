@@ -1,6 +1,13 @@
 import streamlit as st
-from textblob import TextBlob
+import nltk
 import dateparser
+from nltk import pos_tag, word_tokenize
+from nltk.corpus import stopwords
+
+# Κατέβασμα απαραίτητων corpora
+nltk.download('punkt')
+nltk.download('averaged_perceptron_tagger')
+nltk.download('stopwords')
 
 CATEGORY_KEYWORDS = {
     "task": ["να ", "πρέπει", "ολοκληρώσω", "πάρε", "στείλε"],
@@ -16,15 +23,17 @@ def detect_category(text):
     return "General"
 
 def extract_tags(text):
-    blob = TextBlob(text)
-    return [word for (word, tag) in blob.tags if tag in ("NN", "NNS", "NNP", "NNPS")]
+    words = word_tokenize(text)
+    tagged = pos_tag(words)
+    stop_words = set(stopwords.words('greek'))
+    return [word for word, tag in tagged if tag.startswith("NN") and word.lower() not in stop_words]
 
 def extract_date(text):
     date = dateparser.parse(text, languages=["el"])
     return date.strftime("%Y-%m-%d") if date else "-"
 
-st.set_page_config(page_title="Note Engine Lite", layout="centered")
-st.title("Note Engine Lite")
+st.set_page_config(page_title="Note Engine NLTK", layout="centered")
+st.title("Note Engine NLTK")
 
 note = st.text_area("Γράψε εδώ τη σημείωση σου")
 
